@@ -1,10 +1,12 @@
 package codechicken.enderstorage.proxy;
 
+import codechicken.enderstorage.EnderStorage;
 import codechicken.enderstorage.init.ModBlocks;
 import codechicken.enderstorage.init.ModItems;
 import codechicken.enderstorage.manager.EnderStorageManager;
 import codechicken.enderstorage.network.EnderStorageSPH;
 import codechicken.enderstorage.network.TankSynchroniser;
+import codechicken.enderstorage.plugin.EnderGasStoragePlugin;
 import codechicken.enderstorage.plugin.EnderItemStoragePlugin;
 import codechicken.enderstorage.plugin.EnderLiquidStoragePlugin;
 import codechicken.lib.packet.PacketCustom;
@@ -18,6 +20,9 @@ public class Proxy {
     public void preInit() {
         EnderStorageManager.registerPlugin(new EnderItemStoragePlugin());
         EnderStorageManager.registerPlugin(new EnderLiquidStoragePlugin());
+        if(EnderStorage.hooks.MekanismLoaded) {
+            EnderStorageManager.registerPlugin(new EnderGasStoragePlugin());
+        }
         ModBlocks.init();
         ModItems.init();
         //MinecraftForge.EVENT_BUS.register(EnderStorageRecipe.init());

@@ -1,7 +1,9 @@
 package codechicken.enderstorage.network;
 
+import codechicken.enderstorage.EnderStorage;
 import codechicken.enderstorage.api.Frequency;
 import codechicken.enderstorage.manager.EnderStorageManager;
+import codechicken.enderstorage.storage.EnderGasStorage;
 import codechicken.enderstorage.storage.EnderLiquidStorage;
 import codechicken.lib.fluid.FluidUtils;
 import codechicken.lib.math.MathHelper;
@@ -12,6 +14,7 @@ import com.google.common.collect.Sets;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -28,6 +31,10 @@ public class TankSynchroniser {
         public FluidStack c_liquid = FluidUtils.emptyFluid();
         public FluidStack s_liquid = FluidUtils.emptyFluid();
         public FluidStack f_liquid = FluidUtils.emptyFluid();
+        public int c_gas_id = 0;
+        public int c_gas_amount = 0;
+        public int s_gas_id = 0;
+        public int s_gas_amount = 0;
 
         public void setFrequency(Frequency frequency) {
             this.frequency = frequency;
@@ -38,6 +45,8 @@ public class TankSynchroniser {
             FluidStack a_liquid;
             if (client) {
                 b_liquid = c_liquid.copy();
+                c_gas_amount = s_gas_amount;
+                c_gas_id = s_gas_id;
 
                 if (s_liquid.isFluidEqual(c_liquid)) {
                     c_liquid.amount = MathHelper.approachExpI(c_liquid.amount, s_liquid.amount, 0.1);
@@ -49,6 +58,10 @@ public class TankSynchroniser {
 
                 a_liquid = c_liquid;
             } else {
+                if(EnderStorage.hooks.MekanismLoaded) {
+                    s_gas_amount = getGasStorage(false).getGasAmount();
+                    s_gas_id = getGasStorage(false).getGasId();
+                }
                 s_liquid = getStorage(false).getFluid();
                 b_liquid = s_liquid.copy();
                 if (!s_liquid.isFluidEqual(c_liquid)) {
@@ -81,6 +94,10 @@ public class TankSynchroniser {
         //SERVER SIDE ONLY!
         public EnderLiquidStorage getStorage(boolean client) {
             return (EnderLiquidStorage) EnderStorageManager.instance(client).getStorage(frequency, "liquid");
+        }
+        @Optional.Method(modid = "mekanism")
+        public EnderGasStorage getGasStorage(boolean client) {
+            return (EnderGasStorage) EnderStorageManager.instance(client).getStorage(frequency, "gas");
         }
     }
 

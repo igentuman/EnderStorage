@@ -21,6 +21,14 @@ repositories {
 		name = "JEI Maven"
 		url = "http://dvs1.progwml6.com/files/maven"
 	}
+    maven {
+        name = "mcmoddev"
+        url = "https://maven.mcmoddev.com"
+    }
+    maven {
+        name = "CurseForge"
+        url = "https://minecraft.curseforge.com/api/maven/"
+    }
 }
 
 apply plugin: 'net.minecraftforge.gradle.forge'
@@ -45,6 +53,8 @@ configFile.withReader {
 dependencies {
     compile "codechicken:CodeChickenLib:${config.mc_version}-${config.ccl_version}:deobf"
 	compile "mezz.jei:jei_${config.mc_version}:${config.jei_version}"
+    deobfCompile "mekanism:Mekanism:${config.mc_version}:${config.mekanism_version}"
+
 }
 
 version =  "${project.config.mod_version}." + System.getenv("BUILD_NUMBER") ?: "1"
@@ -115,53 +125,4 @@ build.dependsOn signJar
 // Tell the artifact system about our extra jars
 artifacts {
     archives srcJar, deobfJar
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            if (project.hasProperty("local_maven")) {
-                repository(url: "file://${local_maven}")
-                pom {
-                    groupId = project.group
-                    version = project.version
-                    artifactId = project.archivesBaseName
-                    project {
-                        name project.archivesBaseName
-                        packaging 'jar'
-                        description 'EnderStorage'
-                        url 'https://github.com/TheCBProject/EnderStorage'
-                        scm {
-                            url 'https://github.com/TheCBProject/EnderStorage'
-                            connection 'scm:git:git@github.com:TheCBProject/EnderStorage.git'
-                            developerConnection 'scm:git:git@github.com:TheCBProject/EnderStorage.git'
-                        }
-                        issueManagement {
-                            system 'github'
-                            url 'https://github.com/TheCBProject/EnderStorage/issues'
-                        }
-                        licenses {
-                            license {
-                                name 'License'
-                                url 'https://raw.githubusercontent.com/TheCBProject/EnderStorage/master/LICENSE.txt'
-                                distribution 'repo'
-                            }
-                        }
-                        developers {
-                            developer {
-                                id 'chicken-bones'
-                                name 'chicken-bones'
-                                roles { role 'developer' }
-                            }
-                            developer {
-                                id 'covers1624'
-                                name 'covers1624'
-                                roles { role 'developer' }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 }

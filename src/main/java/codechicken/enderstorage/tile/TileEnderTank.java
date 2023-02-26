@@ -1,9 +1,11 @@
 package codechicken.enderstorage.tile;
 
+import codechicken.enderstorage.EnderStorage;
 import codechicken.enderstorage.api.Frequency;
 import codechicken.enderstorage.manager.EnderStorageManager;
 import codechicken.enderstorage.network.EnderStorageSPH;
 import codechicken.enderstorage.network.TankSynchroniser;
+import codechicken.enderstorage.storage.EnderGasStorage;
 import codechicken.enderstorage.storage.EnderLiquidStorage;
 import codechicken.lib.data.MCDataInput;
 import codechicken.lib.data.MCDataOutput;
@@ -12,6 +14,10 @@ import codechicken.lib.math.MathHelper;
 import codechicken.lib.packet.PacketCustom;
 import codechicken.lib.raytracer.IndexedCuboid6;
 import codechicken.lib.vec.*;
+import mekanism.api.gas.Gas;
+import mekanism.api.gas.GasStack;
+import mekanism.api.gas.IGasHandler;
+import mekanism.common.capabilities.Capabilities;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -26,6 +32,7 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.FluidTankProperties;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
+import net.minecraftforge.fml.common.Optional;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -33,7 +40,34 @@ import java.util.List;
 
 import static codechicken.lib.vec.Vector3.center;
 
-public class TileEnderTank extends TileFrequencyOwner {
+@Optional.InterfaceList({
+        @Optional.Interface(iface = "mekanism.api.gas.IGasHandler", modid = "mekanism")
+})
+public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
+
+    @Override
+    @Optional.Method(modid = "mekanism")
+    public int receiveGas(EnumFacing enumFacing, GasStack gasStack, boolean b) {
+        return getGasStorage().receiveGas(enumFacing, gasStack, b);
+    }
+
+    @Override
+    @Optional.Method(modid = "mekanism")
+    public GasStack drawGas(EnumFacing enumFacing, int i, boolean b) {
+        return getGasStorage().drawGas(enumFacing, i, b);
+    }
+
+    @Override
+    @Optional.Method(modid = "mekanism")
+    public boolean canReceiveGas(EnumFacing enumFacing, Gas gas) {
+        return true;
+    }
+
+    @Override
+    @Optional.Method(modid = "mekanism")
+    public boolean canDrawGas(EnumFacing enumFacing, Gas gas) {
+        return true;
+    }
 
     public class EnderTankState extends TankSynchroniser.TankState {
 
@@ -42,6 +76,10 @@ public class TileEnderTank extends TileFrequencyOwner {
             PacketCustom packet = new PacketCustom(EnderStorageSPH.channel, 5);
             packet.writePos(getPos());
             packet.writeFluidStack(s_liquid);
+            if(EnderStorage.hooks.MekanismLoaded) {
+                packet.writeInt(getGasStorage(false).getGasId());
+                packet.writeInt(getGasStorage(false).getGasAmount());
+            }
             packet.sendToChunk(world, pos.getX() >> 4, pos.getZ() >> 4);
         }
 
@@ -138,6 +176,7 @@ public class TileEnderTank extends TileFrequencyOwner {
     public PressureState pressure_state = new PressureState();
     public TankFluidCap fluidCap = new TankFluidCap();
 
+
     private boolean described;
 
     @Override
@@ -179,6 +218,11 @@ public class TileEnderTank extends TileFrequencyOwner {
         return (EnderLiquidStorage) EnderStorageManager.instance(world.isRemote).getStorage(frequency, "liquid");
     }
 
+    @Optional.Method(modid = "mekanism")
+    public EnderGasStorage getGasStorage() {
+        return (EnderGasStorage) EnderStorageManager.instance(world.isRemote).getStorage(frequency, "gas");
+    }
+
     @Override
     public void onPlaced(EntityLivingBase entity) {
         rotation = (int) Math.floor(entity.rotationYaw * 4 / 360 + 2.5D) & 3;
@@ -206,6 +250,10 @@ public class TileEnderTank extends TileFrequencyOwner {
         super.writeToPacket(packet);
         packet.writeByte(rotation);
         packet.writeFluidStack(liquid_state.s_liquid);
+        if(EnderStorage.hooks.MekanismLoaded) {
+            packet.writeInt(getGasStorage().getGasId());
+            packet.writeInt(getGasStorage().getGasAmount());
+        }
         packet.writeBoolean(pressure_state.a_pressure);
     }
 
@@ -215,6 +263,10 @@ public class TileEnderTank extends TileFrequencyOwner {
         liquid_state.setFrequency(frequency);
         rotation = packet.readUByte() & 3;
         liquid_state.s_liquid = packet.readFluidStack();
+        if(EnderStorage.hooks.MekanismLoaded) {
+            getGasStorage().setGasId(packet.readInt());
+            getGasStorage().setGasAmount(packet.readInt());
+        }
         pressure_state.a_pressure = packet.readBoolean();
         if (!described) {
             liquid_state.c_liquid = liquid_state.s_liquid;
@@ -289,11 +341,19 @@ public class TileEnderTank extends TileFrequencyOwner {
 
     @Override
     public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+        if(EnderStorage.hooks.MekanismLoaded) {
+            if (capability == Capabilities.GAS_HANDLER_CAPABILITY) return true;
+        }
         return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
     }
 
     @Override
     public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+        if(EnderStorage.hooks.MekanismLoaded) {
+            if (capability == Capabilities.GAS_HANDLER_CAPABILITY) {
+                return Capabilities.GAS_HANDLER_CAPABILITY.cast(this);
+            }
+        }
         if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
             return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(fluidCap);
         }

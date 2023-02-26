@@ -4,6 +4,7 @@ import codechicken.enderstorage.command.EnderStorageCommand;
 import codechicken.enderstorage.handler.ConfigurationHandler;
 import codechicken.enderstorage.manager.EnderStorageManager;
 import codechicken.enderstorage.proxy.Proxy;
+import codechicken.enderstorage.util.EnderHooks;
 import codechicken.lib.CodeChickenLib;
 import codechicken.lib.internal.ModDescriptionEnhancer;
 import net.minecraftforge.fml.common.Mod;
@@ -32,6 +33,7 @@ public class EnderStorage {
 
     @Mod.Instance (EnderStorage.MOD_ID)
     public static EnderStorage instance;
+    public static EnderHooks hooks = new EnderHooks();
 
     public EnderStorage() {
         instance = this;
@@ -39,6 +41,7 @@ public class EnderStorage {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        hooks.hookPreInit();
         ConfigurationHandler.init(event.getSuggestedConfigurationFile());
         proxy.preInit();
         ModMetadata metadata = event.getModMetadata();
