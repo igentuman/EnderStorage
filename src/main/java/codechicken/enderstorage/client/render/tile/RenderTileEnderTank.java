@@ -70,10 +70,12 @@ public class RenderTileEnderTank extends TileEntitySpecialRenderer<TileEnderTank
         renderTank(ccrs, enderTank.rotation, (float) MathHelper.interpolate(enderTank.pressure_state.b_rotate, enderTank.pressure_state.a_rotate, partialTicks) * 0.01745F, enderTank.frequency, x, y, z, RenderUtils.getTimeOffset(enderTank.getPos()));
         renderLiquid(enderTank.liquid_state.c_liquid, x, y, z);
         if(EnderStorage.hooks.MekanismLoaded) {
-            FluidStack fl = new FluidStack(
-                    new GasStack(enderTank.liquid_state.c_gas_id, 1).getGas().getFluid().setGaseous(true),
-                    enderTank.liquid_state.c_gas_amount);
-            renderGas(fl,  x, y, z);
+            try {
+                FluidStack fl = new FluidStack(
+                        new GasStack(enderTank.liquid_state.c_gas_id, 1).getGas().getFluid().setGaseous(true),
+                        enderTank.liquid_state.c_gas_amount);
+                renderGas(fl,  x, y, z);
+            } catch (NullPointerException e) {            }
         }
     }
 

@@ -61,6 +61,9 @@ public class TankSynchroniser {
                 if(EnderStorage.hooks.MekanismLoaded) {
                     s_gas_amount = getGasStorage(false).getGasAmount();
                     s_gas_id = getGasStorage(false).getGasId();
+                    if(s_gas_amount == 0) {
+                        s_gas_id = 0;
+                    }
                     if(c_gas_id != s_gas_id) {
                         sendSyncPacket();
                         c_gas_id = s_gas_id;

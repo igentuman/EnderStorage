@@ -304,7 +304,10 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
             pressure_state.invert();
             return true;
         }
-        return FluidUtil.interactWithFluidHandler(player, hand, getStorage());
+        if(liquid_state.s_gas_id == 0) {
+            return FluidUtil.interactWithFluidHandler(player, hand, getStorage());
+        }
+        return false;
     }
 
     @Override

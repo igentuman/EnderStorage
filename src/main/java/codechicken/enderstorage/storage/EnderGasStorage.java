@@ -43,7 +43,11 @@ public class EnderGasStorage extends AbstractEnderStorage implements IGasHandler
     @Override
     public int receiveGas(EnumFacing enumFacing, GasStack gasStack, boolean b) {
         if(canReceiveGas(enumFacing, gasStack.getGas())) {
-            return tank.receive(gasStack, b);
+            int receive =  tank.receive(gasStack, b);
+            if(receive > 0 && b) {
+                setDirty();
+            }
+            return receive;
         }
         return 0;
     }
@@ -80,12 +84,20 @@ public class EnderGasStorage extends AbstractEnderStorage implements IGasHandler
     }
 
     public void setGasId(int gasId) {
+        int wasId = getGasId();
         tank.setGas(new GasStack(gasId, 1));
+        if(wasId != gasId) {
+            setDirty();
+        }
     }
 
     public void setGasAmount(int amount) {
         if(tank.getGas() == null) return;
+        int wasAmount = getGasAmount();
         tank.getGas().amount = amount;
+        if(wasAmount != amount) {
+            setDirty();
+        }
     }
 
     private class Tank extends GasTank {
@@ -93,11 +105,11 @@ public class EnderGasStorage extends AbstractEnderStorage implements IGasHandler
             super(capacity);
         }
         public void fromTag(NBTTagCompound tag) {
-            stored.read(tag);
+           super.read(tag);
         }
 
         public NBTTagCompound toTag() {
-            return stored.write(new NBTTagCompound());
+            return super.write(new NBTTagCompound());
         }
     }
 
