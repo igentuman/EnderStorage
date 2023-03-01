@@ -141,6 +141,9 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
 
         @Override
         public int fill(FluidStack resource, boolean doFill) {
+            if(liquid_state.s_gas_id != 0) {
+                return 0;
+            }
             return getStorage().fill(resource, doFill);
         }
 
@@ -332,7 +335,7 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
 
     public void sync(PacketCustom packet) {
         if (packet.getType() == 5) {
-            liquid_state.sync(packet.readFluidStack());
+            liquid_state.sync(packet.readFluidStack(), packet.readInt(), packet.readInt());
         } else if (packet.getType() == 6) {
             pressure_state.a_pressure = packet.readBoolean();
         }

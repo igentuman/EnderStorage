@@ -61,6 +61,17 @@ public class TankSynchroniser {
                 if(EnderStorage.hooks.MekanismLoaded) {
                     s_gas_amount = getGasStorage(false).getGasAmount();
                     s_gas_id = getGasStorage(false).getGasId();
+                    if(c_gas_id != s_gas_id) {
+                        sendSyncPacket();
+                        c_gas_id = s_gas_id;
+                        c_gas_amount = s_gas_amount;
+                    } else {
+                        if(Math.abs(c_gas_amount - s_gas_amount) > 250 || (s_gas_amount == 0 && c_gas_amount > 0)) {
+                            sendSyncPacket();
+                            c_gas_id = s_gas_id;
+                            c_gas_amount = s_gas_amount;
+                        }
+                    }
                 }
                 s_liquid = getStorage(false).getFluid();
                 b_liquid = s_liquid.copy();
@@ -84,11 +95,14 @@ public class TankSynchroniser {
 
         public abstract void sendSyncPacket();
 
-        public void sync(FluidStack liquid) {
+        public void sync(FluidStack liquid, int gas_id, int gas_amount) {
             s_liquid = liquid;
+            s_gas_id = gas_id;
+            s_gas_amount = gas_amount;
             if (!s_liquid.isFluidEqual(c_liquid)) {
                 f_liquid = c_liquid.copy();
             }
+
         }
 
         //SERVER SIDE ONLY!
@@ -125,6 +139,8 @@ public class TankSynchroniser {
             getStorage(false).freq.writeToPacket(packet);
             //packet.writeString(storage.owner);
             packet.writeFluidStack(s_liquid);
+            packet.writeInt(s_gas_amount);
+            packet.writeInt(s_gas_amount);
             packet.sendToPlayer(player);
         }
 
@@ -173,10 +189,10 @@ public class TankSynchroniser {
             state.setTracking(t);
         }
 
-        public void sync(Frequency freq, FluidStack liquid) {
+        public void sync(Frequency freq, FluidStack liquid, int gas_id, int gas_amount) {
             String key = freq.toString();
             PlayerItemTankState state = tankStates.computeIfAbsent(key, k -> new PlayerItemTankState());
-            state.sync(liquid);
+            state.sync(liquid, gas_id, gas_amount);
         }
 
         public void update() {
@@ -229,8 +245,8 @@ public class TankSynchroniser {
     private static HashMap<String, PlayerItemTankCache> playerItemTankStates;
     private static PlayerItemTankCache clientState;
 
-    public static void syncClient(Frequency freq, FluidStack liquid) {
-        clientState.sync(freq, liquid);
+    public static void syncClient(Frequency freq, FluidStack liquid, int gas_id, int gas_amount) {
+        clientState.sync(freq, liquid, gas_id, gas_amount);
     }
 
     public static FluidStack getClientLiquid(Frequency freq) {

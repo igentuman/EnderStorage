@@ -31,7 +31,7 @@ public class EnderStorageCPH implements IClientPacketHandler {
                 ((EnderItemStorage) EnderStorageManager.instance(true).getStorage(Frequency.readFromPacket(packet), "item")).setClientOpen(packet.readBoolean() ? 1 : 0);
                 break;
             case 4:
-                TankSynchroniser.syncClient(Frequency.readFromPacket(packet), packet.readFluidStack());
+                TankSynchroniser.syncClient(Frequency.readFromPacket(packet), packet.readFluidStack(), packet.readInt(), packet.readInt());
                 break;
             case 5:
             case 6:
