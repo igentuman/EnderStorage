@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static codechicken.enderstorage.handler.ConfigurationHandler.tankOutputRate;
 import static codechicken.lib.vec.Vector3.center;
 
 @Optional.InterfaceList({
@@ -132,7 +133,6 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
 
         @Override
         public IFluidTankProperties[] getTankProperties() {
-
             if (world.isRemote) {
                 return new IFluidTankProperties[] { new FluidTankProperties(liquid_state.s_liquid, EnderLiquidStorage.CAPACITY) };
             }
@@ -141,21 +141,18 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
 
         @Override
         public int fill(FluidStack resource, boolean doFill) {
-
             return getStorage().fill(resource, doFill);
         }
 
         @Nullable
         @Override
         public FluidStack drain(FluidStack resource, boolean doDrain) {
-
             return getStorage().drain(resource, doDrain);
         }
 
         @Nullable
         @Override
         public FluidStack drain(int maxDrain, boolean doDrain) {
-
             return getStorage().drain(maxDrain, doDrain);
         }
     }
@@ -186,15 +183,37 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
         pressure_state.update(world.isRemote);
         if (pressure_state.a_pressure) {
             ejectLiquid();
+            if(EnderStorage.hooks.MekanismLoaded) {
+                ejectGas();
+            }
         }
 
         liquid_state.update(world.isRemote);
     }
 
+    @Optional.Method(modid = "mekanism")
+    private void ejectGas() {
+        for (EnumFacing side : EnumFacing.values()) {
+            TileEntity te = world.getTileEntity(getPos().offset(side));
+            if(te == null) continue;
+            if(!te.hasCapability(Capabilities.GAS_HANDLER_CAPABILITY, side.getOpposite())) continue;
+
+            IGasHandler c = te.getCapability(Capabilities.GAS_HANDLER_CAPABILITY, side.getOpposite());
+            GasStack gas = getGasStorage().drawGas(side, tankOutputRate, false);
+            if (gas == null) {
+                continue;
+            }
+            int qty = c.receiveGas(side.getOpposite(), gas, true);
+            if (qty > 0) {
+                getGasStorage().drawGas(side, qty, true);
+            }
+        }
+    }
+
     private void ejectLiquid() {
         for (EnumFacing side : EnumFacing.values()) {
             IFluidHandler c = FluidUtils.getFluidHandlerOrEmpty(world, getPos().offset(side), side.getOpposite());
-            FluidStack liquid = getStorage().drain(100, false);
+            FluidStack liquid = getStorage().drain(tankOutputRate, false);
             if (liquid == null) {
                 continue;
             }

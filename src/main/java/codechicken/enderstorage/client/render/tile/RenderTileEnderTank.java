@@ -1,5 +1,6 @@
 package codechicken.enderstorage.client.render.tile;
 
+import codechicken.enderstorage.EnderStorage;
 import codechicken.enderstorage.api.Frequency;
 import codechicken.enderstorage.client.model.ButtonModelLibrary;
 import codechicken.enderstorage.client.render.RenderCustomEndPortal;
@@ -16,11 +17,13 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import java.util.ArrayList;
 import java.util.Map;
 
+import static codechicken.enderstorage.handler.ConfigurationHandler.tankSize;
 import static net.minecraft.client.renderer.vertex.DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL;
 
 public class RenderTileEnderTank extends TileEntitySpecialRenderer<TileEnderTank> {
@@ -65,6 +68,11 @@ public class RenderTileEnderTank extends TileEntitySpecialRenderer<TileEnderTank
         //CCRenderState.setBrightness(enderTank.getWorld(), enderTank.getPos());
         renderTank(ccrs, enderTank.rotation, (float) MathHelper.interpolate(enderTank.pressure_state.b_rotate, enderTank.pressure_state.a_rotate, partialTicks) * 0.01745F, enderTank.frequency, x, y, z, RenderUtils.getTimeOffset(enderTank.getPos()));
         renderLiquid(enderTank.liquid_state.c_liquid, x, y, z);
+        if(EnderStorage.hooks.MekanismLoaded) {
+            FluidStack fl = enderTank.getGasStorage().getFluid();
+            if(fl == null) return;
+            renderGas(fl,  x, y, z);
+        }
     }
 
     public static void renderTank(CCRenderState ccrs, int rotation, float valve, Frequency freq, double x, double y, double z, int offset) {
@@ -105,6 +113,10 @@ public class RenderTileEnderTank extends TileEntitySpecialRenderer<TileEnderTank
     }
 
     public static void renderLiquid(FluidStack liquid, double x, double y, double z) {
-        RenderUtils.renderFluidCuboidGL(liquid, new Cuboid6(0.22, 0.12, 0.22, 0.78, 0.121 + 0.63, 0.78).add(new Vector3(x, y, z)), liquid.amount / (16D * FluidUtils.B), 0.75);
+        RenderUtils.renderFluidCuboidGL(liquid, new Cuboid6(0.22, 0.12, 0.22, 0.78, 0.121 + 0.63, 0.78).add(new Vector3(x, y, z)), liquid.amount / tankSize, 0.75);
+    }
+
+    public static void renderGas(FluidStack liquid, double x, double y, double z) {
+        RenderUtils.renderFluidCuboidGL(liquid, new Cuboid6(0.22, 0.12, 0.22, 0.78, 0.121 + 0.63, 0.78).add(new Vector3(x, y, z)), liquid.amount / tankSize, 0.75);
     }
 }

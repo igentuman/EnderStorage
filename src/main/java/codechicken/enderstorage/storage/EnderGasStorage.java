@@ -8,6 +8,8 @@ import codechicken.enderstorage.manager.EnderStorageManager;
 import mekanism.api.gas.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
 import net.minecraftforge.fml.common.Optional;
 
 import javax.annotation.Nonnull;
@@ -24,6 +26,18 @@ public class EnderGasStorage extends AbstractEnderStorage implements IGasHandler
     private boolean canTransferGas()
     {
         return EnderStorage.hooks.MekanismLoaded && ConfigurationHandler.mekanismGasSupport;
+    }
+
+    public FluidStack getFluid()
+    {
+        try {
+            if (tank.getGas().amount == 0) {
+                return null;
+            }
+            return new FluidStack(tank.getGas().getGas().getFluid().setGaseous(true), tank.getGas().amount);
+        } catch (NullPointerException ignored) {
+            return null;
+        }
     }
 
     @Override
