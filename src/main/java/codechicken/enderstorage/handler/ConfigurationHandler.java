@@ -28,6 +28,7 @@ public class ConfigurationHandler {
     public static boolean mekanismGasSupport;
     public static boolean perDimensionStorage;
     public static boolean useVanillaEnderChestSounds;
+    public static int tankSize;
     public static ItemStack personalItem;
 
     public static void init(File file) {
@@ -67,6 +68,7 @@ public class ConfigurationHandler {
         }
         personalItem = new ItemStack(item, 1, meta);
         //endregion
+        tankSize = config.getTag("tankSize").setComment("Ender Tank size in mb.").getIntValue(32000);
         mekanismGasSupport = config.getTag("mekanismGasSupport").setComment("Adds Ender Tank support for mekanism gasses.").getBooleanValue(true);
 
         perDimensionStorage = config.getTag("perDimensionStorage").setComment("Makes storage connection with the same color only possible inside a dimension. No cross dimension storage.").getBooleanValue(false);

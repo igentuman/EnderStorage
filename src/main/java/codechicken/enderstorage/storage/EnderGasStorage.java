@@ -6,18 +6,20 @@ import codechicken.enderstorage.api.Frequency;
 import codechicken.enderstorage.handler.ConfigurationHandler;
 import codechicken.enderstorage.manager.EnderStorageManager;
 import mekanism.api.gas.*;
-import mekanism.common.tier.GasTankTier;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fml.common.Optional;
 
 import javax.annotation.Nonnull;
+
+import static codechicken.enderstorage.handler.ConfigurationHandler.tankSize;
+
 @Optional.InterfaceList({
         @Optional.Interface(iface = "mekanism.api.gas.IGasHandler", modid = "mekanism")
 })
 public class EnderGasStorage extends AbstractEnderStorage implements IGasHandler {
 
-    public static final int CAPACITY = GasTankTier.BASIC.getStorage();
+    public static final int CAPACITY = tankSize;
 
     private boolean canTransferGas()
     {

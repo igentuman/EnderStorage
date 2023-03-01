@@ -11,9 +11,11 @@ import net.minecraftforge.fluids.capability.FluidTankProperties;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 
+import static codechicken.enderstorage.handler.ConfigurationHandler.tankSize;
+
 public class EnderLiquidStorage extends AbstractEnderStorage implements IFluidHandler {
 
-    public static final int CAPACITY = 16 * FluidUtils.B;
+    public static final int CAPACITY = tankSize;
 
     private class Tank extends ExtendedFluidTank {
 
