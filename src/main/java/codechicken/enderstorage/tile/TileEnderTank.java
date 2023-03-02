@@ -49,6 +49,9 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
     @Override
     @Optional.Method(modid = "mekanism")
     public int receiveGas(EnumFacing enumFacing, GasStack gasStack, boolean b) {
+        if(liquid_state.s_liquid.amount > 0) {
+            return 0;
+        }
         return getGasStorage().receiveGas(enumFacing, gasStack, b);
     }
 
@@ -361,7 +364,14 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
         if (fluid == null) {
             fluid = FluidUtils.emptyFluid();
         }
-        return fluid.amount * 14 / tank.getCapacity() + (fluid.amount > 0 ? 1 : 0);
+        int signal = fluid.amount * 14 / tank.getCapacity() + (fluid.amount > 0 ? 1 : 0);
+        if(signal > 0) {
+            return signal;
+        }
+        if(EnderStorage.hooks.MekanismLoaded) {
+            signal = getGasStorage().getGasAmount()/EnderGasStorage.CAPACITY+ + (getGasStorage().getGasAmount() > 0 ? 1 : 0);
+        }
+        return signal;
     }
 
     @Override

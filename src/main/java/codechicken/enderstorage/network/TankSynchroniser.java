@@ -1,6 +1,7 @@
 package codechicken.enderstorage.network;
 
 import codechicken.enderstorage.EnderStorage;
+import codechicken.enderstorage.api.AbstractEnderStorage;
 import codechicken.enderstorage.api.Frequency;
 import codechicken.enderstorage.manager.EnderStorageManager;
 import codechicken.enderstorage.storage.EnderGasStorage;
@@ -35,9 +36,19 @@ public class TankSynchroniser {
         public int c_gas_amount = 0;
         public int s_gas_id = 0;
         public int s_gas_amount = 0;
-
+        public int forceUpdateCounter = 0;
         public void setFrequency(Frequency frequency) {
             this.frequency = frequency;
+        }
+
+        public void forceUpdate()
+        {
+            forceUpdateCounter++;
+            if(forceUpdateCounter>20) {
+                forceUpdateCounter = 0;
+                sendSyncPacket();
+            }
+
         }
 
         public void update(boolean client) {
@@ -76,6 +87,7 @@ public class TankSynchroniser {
                         }
                     }
                 }
+                forceUpdate();
                 s_liquid = getStorage(false).getFluid();
                 b_liquid = s_liquid.copy();
                 if (!s_liquid.isFluidEqual(c_liquid)) {
@@ -123,7 +135,7 @@ public class TankSynchroniser {
         private EntityPlayerMP player;
         private boolean tracking;
 
-        public PlayerItemTankState(EntityPlayerMP player, EnderLiquidStorage storage) {
+        public PlayerItemTankState(EntityPlayerMP player, AbstractEnderStorage storage) {
             this.player = player;
             setFrequency(storage.freq);
             tracking = true;
@@ -188,6 +200,7 @@ public class TankSynchroniser {
                     return;
                 }
                 tankStates.put(key, state = new PlayerItemTankState(player, (EnderLiquidStorage) EnderStorageManager.instance(false).getStorage(freq, "liquid")));
+                tankStates.put(key, state = new PlayerItemTankState(player, (EnderGasStorage) EnderStorageManager.instance(false).getStorage(freq, "gas")));
             }
             state.setTracking(t);
         }
