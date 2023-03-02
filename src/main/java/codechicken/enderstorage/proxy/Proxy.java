@@ -2,6 +2,7 @@ package codechicken.enderstorage.proxy;
 
 import codechicken.enderstorage.EnderStorage;
 import codechicken.enderstorage.init.ModBlocks;
+import codechicken.enderstorage.init.ModFluids;
 import codechicken.enderstorage.init.ModItems;
 import codechicken.enderstorage.manager.EnderStorageManager;
 import codechicken.enderstorage.network.EnderStorageSPH;
@@ -25,6 +26,7 @@ public class Proxy {
         }
         ModBlocks.init();
         ModItems.init();
+        ModFluids.init();
         //MinecraftForge.EVENT_BUS.register(EnderStorageRecipe.init());
         MinecraftForge.EVENT_BUS.register(new EnderStorageManager.EnderStorageSaveHandler());
         MinecraftForge.EVENT_BUS.register(new TankSynchroniser());

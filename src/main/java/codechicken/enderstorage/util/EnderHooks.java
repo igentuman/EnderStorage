@@ -12,6 +12,7 @@ public final class EnderHooks {
     public boolean AE2Loaded = false;
     public boolean IC2Loaded = false;
     public boolean MekanismLoaded = false;
+    public boolean BotaniaLoaded = false;
 
     public void hookPreInit() {
         CCLoaded = Loader.isModLoaded("computercraft");
@@ -22,6 +23,7 @@ public final class EnderHooks {
         AE2Loaded = Loader.isModLoaded("appliedenergistics2");
         IC2Loaded = Loader.isModLoaded("ic2");
         MekanismLoaded = Loader.isModLoaded("mekanism");
+        BotaniaLoaded = Loader.isModLoaded("botania");
     }
 
     public void hookInit() {

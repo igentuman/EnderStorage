@@ -32,6 +32,8 @@ public class TankSynchroniser {
         public FluidStack c_liquid = FluidUtils.emptyFluid();
         public FluidStack s_liquid = FluidUtils.emptyFluid();
         public FluidStack f_liquid = FluidUtils.emptyFluid();
+        public int s_manaAmount = 0;
+        public int c_manaAmount = 0;
         public int c_gas_id = 0;
         public int c_gas_amount = 0;
         public int s_gas_id = 0;
@@ -58,7 +60,7 @@ public class TankSynchroniser {
                 b_liquid = c_liquid.copy();
                 c_gas_amount = s_gas_amount;
                 c_gas_id = s_gas_id;
-
+                c_manaAmount = s_manaAmount;
                 if (s_liquid.isFluidEqual(c_liquid)) {
                     c_liquid.amount = MathHelper.approachExpI(c_liquid.amount, s_liquid.amount, 0.1);
                 } else if (c_liquid.amount > 100) {

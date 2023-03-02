@@ -13,6 +13,9 @@ buildscript {
 
 //add dependency repositories
 repositories {
+    maven {
+        url = "https://www.cursemaven.com"
+    }
 	maven {
 		name = "CB Repo"
 		url = "http://chickenbones.net/maven"
@@ -54,11 +57,12 @@ dependencies {
     compile "codechicken:CodeChickenLib:${config.mc_version}-${config.ccl_version}:deobf"
 	compile "mezz.jei:jei_${config.mc_version}:${config.jei_version}"
     deobfCompile "mekanism:Mekanism:${config.mc_version}:${config.mekanism_version}"
+    deobfCompile "curse.maven:baubles-227083:2518667"
+    deobfCompile "curse.maven:botania-225643:3330934"
 
 }
 
-version =  "${project.config.mod_version}." + System.getenv("BUILD_NUMBER") ?: "1"
-
+version =  "${project.config.mod_version}"
 println  config.mc_version + "-" + config.forge_version
 // Setup the forge minecraft plugin data. Specify the preferred forge/minecraft version here
 minecraft {

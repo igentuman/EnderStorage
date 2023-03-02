@@ -2,6 +2,8 @@ package codechicken.enderstorage.tile;
 
 import codechicken.enderstorage.EnderStorage;
 import codechicken.enderstorage.api.Frequency;
+import codechicken.enderstorage.fluid.FluidMana;
+import codechicken.enderstorage.init.ModFluids;
 import codechicken.enderstorage.manager.EnderStorageManager;
 import codechicken.enderstorage.network.EnderStorageSPH;
 import codechicken.enderstorage.network.TankSynchroniser;
@@ -33,18 +35,21 @@ import net.minecraftforge.fluids.capability.FluidTankProperties;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.Optional;
+import vazkii.botania.api.mana.IManaReceiver;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static codechicken.enderstorage.handler.ConfigurationHandler.tankOutputRate;
+import static codechicken.enderstorage.handler.ConfigurationHandler.*;
 import static codechicken.lib.vec.Vector3.center;
 
 @Optional.InterfaceList({
-        @Optional.Interface(iface = "mekanism.api.gas.IGasHandler", modid = "mekanism")
+        @Optional.Interface(iface = "mekanism.api.gas.IGasHandler", modid = "mekanism"),
+        @Optional.Interface(iface = "vazkii.botania.api.mana.IManaReceiver", modid = "botania"),
+
 })
-public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
+public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IManaReceiver {
 
     @Override
     @Optional.Method(modid = "mekanism")
@@ -71,6 +76,50 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
     @Optional.Method(modid = "mekanism")
     public boolean canDrawGas(EnumFacing enumFacing, Gas gas) {
         return true;
+    }
+
+    @Override
+    @Optional.Method(modid = "botania")
+    public boolean isFull() {
+        if(!botaniaManaSupport) return true;
+        //full if contains gas
+        if(EnderStorage.hooks.MekanismLoaded) {
+            if(getGasStorage().getGasAmount() > 0) {
+                return true;
+            }
+        }
+        if(getStorage().getFluid() != null && getStorage().getFluid().getFluid() instanceof FluidMana) {
+            return getStorage().getFluid().amount>=tankSize;
+        }
+
+        return getStorage().getFluid().amount != 0;
+    }
+
+    @Override
+    @Optional.Method(modid = "botania")
+    public void recieveMana(int i) {
+        if(!botaniaManaSupport) return;
+        FluidStack mana = new FluidStack(ModFluids.fluidMana, i*5);
+       int r = fluidCap.fill(mana, false);
+       if(r > 0) {
+           mana.amount = r;
+           fluidCap.fill(mana, true);
+       }
+    }
+
+    @Override
+    @Optional.Method(modid = "botania")
+    public boolean canRecieveManaFromBursts() {
+        return botaniaManaSupport;
+    }
+
+    @Override
+    @Optional.Method(modid = "botania")
+    public int getCurrentMana() {
+        if(getStorage().getFluid() != null && getStorage().getFluid().getFluid() instanceof FluidMana) {
+            return getStorage().getFluid().amount/5;
+        }
+        return 0;
     }
 
     public class EnderTankState extends TankSynchroniser.TankState {
@@ -153,12 +202,18 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
         @Nullable
         @Override
         public FluidStack drain(FluidStack resource, boolean doDrain) {
+            if(botaniaManaSupport && resource.getFluid() instanceof FluidMana) {
+                return null;
+            }
             return getStorage().drain(resource, doDrain);
         }
 
         @Nullable
         @Override
         public FluidStack drain(int maxDrain, boolean doDrain) {
+            if(botaniaManaSupport && getStorage().getFluid().getFluid() instanceof FluidMana) {
+                return null;
+            }
             return getStorage().drain(maxDrain, doDrain);
         }
     }
@@ -192,6 +247,9 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
             if(EnderStorage.hooks.MekanismLoaded) {
                 ejectGas();
             }
+            if(EnderStorage.hooks.BotaniaLoaded) {
+                ejectMana();
+            }
         }
 
         liquid_state.update(world.isRemote);
@@ -199,6 +257,7 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
 
     @Optional.Method(modid = "mekanism")
     private void ejectGas() {
+        if(!mekanismGasSupport) return;
         for (EnumFacing side : EnumFacing.values()) {
             TileEntity te = world.getTileEntity(getPos().offset(side));
             if(te == null) continue;
@@ -216,7 +275,35 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler {
         }
     }
 
+    @Optional.Method(modid = "botania")
+    public void ejectMana() {
+        if(!EnderStorage.hooks.BotaniaLoaded || !botaniaManaSupport) return;
+        for (EnumFacing side : EnumFacing.values()) {
+            TileEntity te = world.getTileEntity(getPos().offset(side));
+            if(te == null) continue;
+            if(te instanceof IManaReceiver) {
+                IManaReceiver manaTe = (IManaReceiver) te;
+               if(manaTe.isFull()) return;
+               int toSend = Math.min(tankOutputRate, getStorage().getFluid().amount);
+               //as we don't know how much mana can be received we have to do it step by step
+                int sent = 0;
+
+                for(int i=0; i<toSend; i++) {
+                    manaTe.recieveMana(1);
+                    if(manaTe.isFull()) {
+                        break;
+                    }
+                    sent++;
+                }
+                if(sent>0) {
+                    getStorage().drain(sent*5, true);
+                }
+            }
+        }
+    }
+
     private void ejectLiquid() {
+        if(getStorage().getFluid().getFluid() instanceof FluidMana) return;
         for (EnumFacing side : EnumFacing.values()) {
             IFluidHandler c = FluidUtils.getFluidHandlerOrEmpty(world, getPos().offset(side), side.getOpposite());
             FluidStack liquid = getStorage().drain(tankOutputRate, false);
