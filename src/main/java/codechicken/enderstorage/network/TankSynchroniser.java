@@ -86,8 +86,9 @@ public class TankSynchroniser {
                             c_gas_amount = s_gas_amount;
                         }
                     }
+                    forceUpdate();
                 }
-                forceUpdate();
+
                 s_liquid = getStorage(false).getFluid();
                 b_liquid = s_liquid.copy();
                 if (!s_liquid.isFluidEqual(c_liquid)) {
@@ -117,7 +118,6 @@ public class TankSynchroniser {
             if (!s_liquid.isFluidEqual(c_liquid)) {
                 f_liquid = c_liquid.copy();
             }
-
         }
 
         //SERVER SIDE ONLY!
