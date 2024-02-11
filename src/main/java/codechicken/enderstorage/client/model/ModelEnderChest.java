@@ -33,9 +33,16 @@ public class ModelEnderChest extends ModelBase {
         chestBelow.rotationPointZ = 1.0F;
     }
 
-    public void render(boolean personal) {
+    public void render(boolean personal, byte mode) {
         chestKnob.rotateAngleX = chestLid.rotateAngleX;
         diamondKnob.rotateAngleX = chestLid.rotateAngleX;
+        chestKnob.rotateAngleZ = 0;
+        diamondKnob.rotateAngleZ = 0;
+        if(mode == 1) {
+            chestKnob.rotateAngleZ = -3.14f;
+            diamondKnob.rotateAngleZ = -3.14f;
+        }
+
         chestLid.render(0.0625F);
         chestBelow.render(0.0625F);
         if (personal) {

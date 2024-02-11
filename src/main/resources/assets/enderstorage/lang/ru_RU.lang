@@ -8,3 +8,5 @@ enderstorage.command.usage=enderstorage <частота>|(<цвет> <цвет> 
 enderstorage.command.no_arguments=Неверное число аргументов
 enderstorage.command.no_freq=Неверная частота
 enderstorage.command.no_colour=Неверный цвет: %s
+enderstrage.tile.mode.push=Выталкивание включено
+enderstrage.tile.mode.default=Выталкивание выключено

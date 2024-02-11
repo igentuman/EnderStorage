@@ -109,6 +109,12 @@ public class EnderItemStorage extends AbstractEnderStorage implements IInventory
         }
     }
 
+    public ItemStack[] getInventory() {
+        synchronized (this) {
+            return items;
+        }
+    }
+
     public ItemStack removeStackFromSlot(int slot) {
         synchronized (this) {
             return InventoryUtils.removeStackFromSlot(this, slot);

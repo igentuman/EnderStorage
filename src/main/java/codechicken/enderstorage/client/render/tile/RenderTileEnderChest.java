@@ -32,15 +32,17 @@ public class RenderTileEnderChest extends TileEntitySpecialRenderer<TileEnderChe
 
     @Override
     public void render(TileEnderChest enderChest, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-        renderChest(enderChest.rotation, enderChest.frequency, x, y, z, RenderUtils.getTimeOffset(enderChest.getPos()), (float) enderChest.getRadianLidAngle(partialTicks));
+        renderChest(enderChest.rotation, enderChest.frequency, enderChest.mode(), x, y, z, RenderUtils.getTimeOffset(enderChest.getPos()), (float) enderChest.getRadianLidAngle(partialTicks));
+        renderMode(enderChest, x, y, z, partialTicks);
     }
 
-    public static void renderChest(int rotation, Frequency freq, double x, double y, double z, int offset, float lidAngle) {
+    public static void renderChest(int rotation, Frequency freq, byte mode, double x, double y, double z, int offset, float lidAngle) {
         TileEntityRendererDispatcher info = TileEntityRendererDispatcher.instance;
         CCRenderState ccrs = CCRenderState.instance();
         ccrs.reset();
-
-        renderEndPortal.render(x, y, z, 0, info.entityX, info.entityY, info.entityZ, info.renderEngine);
+        if(lidAngle != 0) {
+            renderEndPortal.render(x, y, z, 0, info.entityX, info.entityY, info.entityZ, info.renderEngine);
+        }
         GlStateManager.color(1, 1, 1, 1);
 
         TextureUtils.changeTexture("enderstorage:textures/enderchest.png");
@@ -53,7 +55,7 @@ public class RenderTileEnderChest extends TileEntitySpecialRenderer<TileEnderChe
         GlStateManager.rotate(rotation * 90, 0.0F, 1.0F, 0.0F);
         GlStateManager.translate(-0.5F, -0.5F, -0.5F);
         model.chestLid.rotateAngleX = lidAngle;
-        model.render(freq.hasOwner());
+        model.render(freq.hasOwner(), mode);
         GlStateManager.popMatrix();
 
         GlStateManager.pushMatrix();
@@ -62,7 +64,9 @@ public class RenderTileEnderChest extends TileEntitySpecialRenderer<TileEnderChe
         GlStateManager.popMatrix();
 
         double time = ClientUtils.getRenderTime() + offset;
-        Matrix4 pearlMat = RenderUtils.getMatrix(new Vector3(x + 0.5, y + 0.2 + lidAngle * -0.5 + RenderUtils.getPearlBob(time), z + 0.5), new Rotation(time / 3, new Vector3(0, 1, 0)), 0.04);
+        Matrix4 pearlMat = RenderUtils.getMatrix(
+                new Vector3(x + 0.5, y + 0.2 + lidAngle * -0.5 + RenderUtils.getPearlBob(time), z + 0.5),
+                new Rotation(time / 3, new Vector3(0, 1, 0)), 0.04);
 
         GlStateManager.disableLighting();
         TextureUtils.changeTexture("enderstorage:textures/hedronmap.png");
@@ -81,6 +85,24 @@ public class RenderTileEnderChest extends TileEntitySpecialRenderer<TileEnderChe
         drawButton(0, freq.getLeft().getWoolMeta(), rot, lidAngle);
         drawButton(1, freq.getMiddle().getWoolMeta(), rot, lidAngle);
         drawButton(2, freq.getRight().getWoolMeta(), rot, lidAngle);
+    }
+
+    private static void renderMode(TileEnderChest enderChest, double x, double y, double z, float partialTicks) {
+
+        if(enderChest.mode() == 0) {
+           // return;
+        }
+        GlStateManager.pushMatrix();
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+        buffer.begin(0x07, DefaultVertexFormats.POSITION_COLOR);
+        GlStateManager.translate(x, y, z);
+        GlStateManager.scale(1,-1,-1);
+        GlStateManager.glLineWidth(2f);
+        buffer.pos(-0.5F, -0.5F, -0.5F).color(1f, 0.5f, 1f, 1f).endVertex();
+        buffer.pos(0.5F, -0.5F, -0.5F).color(1f, 0.5f, 1f, 1f).endVertex();
+        tessellator.draw();
+        GlStateManager.popMatrix();
     }
 
     private static void drawButton(int button, int colour, int rot, double lidAngle) {

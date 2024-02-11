@@ -31,6 +31,7 @@ public class ConfigurationHandler {
     public static boolean useVanillaEnderChestSounds;
     public static int tankSize;
     public static int tankOutputRate;
+    public static int manaOutputRate;
     public static ItemStack personalItem;
 
     public static void init(File file) {
@@ -74,6 +75,7 @@ public class ConfigurationHandler {
         tankOutputRate = config.getTag("tankOutputRate").setComment("Ender Tank pressure mode output rate mb/t.").getIntValue(500);
         mekanismGasSupport = config.getTag("mekanismGasSupport").setComment("Adds Ender Tank support for mekanism gasses.").getBooleanValue(true);
         botaniaManaSupport = config.getTag("botaniaManaSupport").setComment("Adds Ender Tank support mana from Botania.").getBooleanValue(true);
+        manaOutputRate = config.getTag("manaOutputRate").setComment("Ender Tank pressure mode output rate mb/t for Botania mana.").getIntValue(100);
 
         perDimensionStorage = config.getTag("perDimensionStorage").setComment("Makes storage connection with the same color only possible inside a dimension. No cross dimension storage.").getBooleanValue(false);
         disableCreatorVisuals = config.getTag("disableCreatorVisuals").setComment("Disables the tank on top of the creators heads.").getBooleanValue(false);

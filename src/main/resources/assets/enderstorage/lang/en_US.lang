@@ -8,3 +8,6 @@ enderstorage.command.usage=enderstorage <freq>|(<colour> <colour> <colour>) [own
 enderstorage.command.no_arguments=Invalid number of arguments
 enderstorage.command.no_freq=Invalid freq
 enderstorage.command.no_colour=Invalid color: %s
+
+enderstrage.tile.mode.push=Push mode enabled
+enderstrage.tile.mode.default=Push mode disabled

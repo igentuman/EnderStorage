@@ -19,7 +19,7 @@ public class EnderChestItemRender implements IItemRenderer {
         GlStateManager.pushMatrix();
 
         Frequency frequency = Frequency.readFromStack(item);
-        RenderTileEnderChest.renderChest(2, frequency, 0, 0, 0, 0, 0F);
+        RenderTileEnderChest.renderChest(2, frequency, (byte)0, 0, 0, 0, 0, 0F);
 
         //Fixes issues with inventory rendering.
         //The Portal renderer modifies blend and disables it.

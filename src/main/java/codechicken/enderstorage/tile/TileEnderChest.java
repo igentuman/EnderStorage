@@ -1,5 +1,6 @@
 package codechicken.enderstorage.tile;
 
+import codechicken.enderstorage.fluid.FluidMana;
 import codechicken.enderstorage.manager.EnderStorageManager;
 import codechicken.enderstorage.misc.EnderDyeButton;
 import codechicken.enderstorage.misc.EnderKnobSlot;
@@ -13,18 +14,25 @@ import codechicken.lib.vec.Cuboid6;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static codechicken.enderstorage.handler.ConfigurationHandler.useVanillaEnderChestSounds;
+import static codechicken.enderstorage.tile.TileEnderChest.ChestMode.PUSH;
+import static com.ibm.icu.impl.duration.impl.DataRecord.ENumberSystem.DEFAULT;
 import static net.minecraft.init.SoundEvents.*;
 
 public class TileEnderChest extends TileFrequencyOwner {
@@ -43,6 +51,8 @@ public class TileEnderChest extends TileFrequencyOwner {
         }
     }
 
+    private byte mode;
+
     public TileEnderChest() {
     }
 
@@ -51,6 +61,9 @@ public class TileEnderChest extends TileFrequencyOwner {
         super.update();
 
         if (!world.isRemote && (world.getTotalWorldTime() % 20 == 0 || c_numOpen != getStorage().getNumOpen())) {
+            if(mode == PUSH.mode) {
+                pushItems();
+            }
             c_numOpen = getStorage().getNumOpen();
             world.addBlockEvent(getPos(), getBlockType(), 1, c_numOpen);
             world.notifyNeighborsOfStateChange(pos, getBlockType(), true);
@@ -63,6 +76,41 @@ public class TileEnderChest extends TileFrequencyOwner {
             world.playSound(null, getPos(), useVanillaEnderChestSounds ? BLOCK_ENDERCHEST_CLOSE : BLOCK_CHEST_CLOSE, SoundCategory.BLOCKS, 0.5F, world.rand.nextFloat() * 0.1F + 0.9F);
         } else if (b_lidAngle == 0 && a_lidAngle > 0) {
             world.playSound(null, getPos(), useVanillaEnderChestSounds ? BLOCK_ENDERCHEST_OPEN : BLOCK_CHEST_OPEN, SoundCategory.BLOCKS, 0.5F, world.rand.nextFloat() * 0.1F + 0.9F);
+        }
+    }
+
+    private List<EnumFacing> emptySides = new ArrayList<>();
+    private void pushItems() {
+        emptySides.clear();
+        for(ItemStack stack: getStorage().getInventory()) {
+            if(stack.isEmpty()) continue;
+            for (EnumFacing side: EnumFacing.VALUES) {
+                if(emptySides.contains(side)) continue;
+                TileEntity te = world.getTileEntity(getPos().offset(side));
+                if(te == null) {
+                    emptySides.add(side);
+                    continue;
+                }
+                IItemHandler inventory = te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side.getOpposite());
+                if(inventory == null) {
+                    emptySides.add(side);
+                    continue;
+                }
+
+                for(int i = 0; i < inventory.getSlots();i++) {
+                    ItemStack left = inventory.insertItem(i, stack, true);
+                    if(left.getCount() > 0) {
+                        int toInsert = stack.getCount() - left.getCount();
+                        stack.shrink(toInsert);
+                        ItemStack insertStack = stack.copy();
+                        insertStack.setCount(toInsert);
+                        inventory.insertItem(i, insertStack, false);
+                    } else {
+                        inventory.insertItem(i, stack.copy(), false);
+                        stack.setCount(0);
+                    }
+                }
+            }
         }
     }
 
@@ -91,23 +139,27 @@ public class TileEnderChest extends TileFrequencyOwner {
     public void writeToPacket(MCDataOutput packet) {
         super.writeToPacket(packet);
         packet.writeByte(rotation);
+        packet.writeByte(mode);
     }
 
     @Override
     public void readFromPacket(MCDataInput packet) {
         super.readFromPacket(packet);
         rotation = packet.readUByte() & 3;
+        mode = packet.readByte();
     }
 
     @Override
     public void onPlaced(EntityLivingBase entity) {
         rotation = (int) Math.floor(entity.rotationYaw * 4 / 360 + 2.5D) & 3;
+        mode = 0;
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag) {
         super.writeToNBT(tag);
         tag.setByte("rot", (byte) rotation);
+        tag.setByte("mode", (byte) mode);
         return tag;
     }
 
@@ -115,12 +167,35 @@ public class TileEnderChest extends TileFrequencyOwner {
     public void readFromNBT(NBTTagCompound tag) {
         super.readFromNBT(tag);
         rotation = tag.getByte("rot") & 3;
+        mode = tag.getByte("mode");
     }
 
     @Override
     public boolean activate(EntityPlayer player, int subHit, EnumHand hand) {
+        ItemStack stack = player.getHeldItem(hand);
+        if (subHit == 4) {
+            toggleMode();
+            String subtype = "default";
+            if (mode == 1) {
+                subtype = "push";
+            }
+            player.sendMessage(new TextComponentTranslation("enderstrage.tile.mode." + subtype));
+            return true;
+        }
         getStorage().openSMPGui(player, "tile.enderChest.name");
         return true;
+    }
+
+    private void toggleMode() {
+        switch (mode) {
+            case 0:
+                mode = 1;
+                break;
+            case 1:
+                mode = 0;
+                break;
+        }
+        markDirty();
     }
 
     @Override
@@ -175,5 +250,22 @@ public class TileEnderChest extends TileFrequencyOwner {
             return (T) new InvWrapper(getStorage());
         }
         return super.getCapability(capability, facing);
+    }
+
+    public byte mode() {
+        return mode;
+    }
+
+    public enum ChestMode {
+        DEFAULT((byte) 0),
+        PUSH((byte) 1);
+
+        public final byte mode;
+        public byte mode() {
+            return mode;
+        }
+        ChestMode(byte mode) {
+            this.mode = mode;
+        }
     }
 }

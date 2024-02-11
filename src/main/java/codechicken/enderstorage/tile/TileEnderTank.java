@@ -27,6 +27,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentBase;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
@@ -284,7 +287,7 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
             if(te instanceof IManaReceiver) {
                 IManaReceiver manaTe = (IManaReceiver) te;
                if(manaTe.isFull()) return;
-               int toSend = Math.min(tankOutputRate, getStorage().getFluid().amount);
+               int toSend = Math.min(tankOutputRate/5, getStorage().getFluid().amount);
                //as we don't know how much mana can be received we have to do it step by step
                 int sent = 0;
 
@@ -392,6 +395,11 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
         ItemStack stack = player.getHeldItem(hand);
         if (subHit == 4) {
             pressure_state.invert();
+            String subtype = "default";
+            if (pressure_state.invert_redstone) {
+                subtype = "push";
+            }
+            player.sendMessage(new TextComponentTranslation("enderstrage.tile.mode." + subtype));
             return true;
         }
         if(liquid_state.s_gas_id == 0 && !(getStorage().getFluid().getFluid() instanceof FluidMana)) {
