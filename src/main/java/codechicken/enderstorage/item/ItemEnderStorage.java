@@ -3,6 +3,7 @@ package codechicken.enderstorage.item;
 import codechicken.enderstorage.api.Frequency;
 import codechicken.enderstorage.block.BlockEnderStorage;
 import codechicken.enderstorage.manager.EnderStorageManager;
+import codechicken.enderstorage.network.TankSynchroniser;
 import codechicken.enderstorage.storage.EnderLiquidStorage;
 import codechicken.enderstorage.tile.TileFrequencyOwner;
 import net.minecraft.block.Block;
@@ -17,11 +18,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+
+import static codechicken.enderstorage.handler.ConfigurationHandler.enderTankItemFluidHandler;
 
 public class ItemEnderStorage extends ItemBlock {
 
@@ -49,38 +55,48 @@ public class ItemEnderStorage extends ItemBlock {
         return false;
     }
 
+    @Nonnull
     @Override
     public String getUnlocalizedName(ItemStack stack) {
         return "tile." + BlockEnderStorage.Type.byMetadata(stack.getItemDamage()).getName();
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+    public void addInformation(@Nonnull ItemStack stack, @Nullable World worldIn, @Nonnull List<String> tooltip, @Nonnull ITooltipFlag flagIn) {
         Frequency frequency = Frequency.readFromStack(stack);
         if (frequency.owner != null) {
             tooltip.add(frequency.owner);
         }
         tooltip.add(frequency.getTooltip());
+        if (getMetadata(stack) == 1) {
+            EnderLiquidStorage storage = getLiquidStorage(stack, false);
+            FluidStack fluid = TankSynchroniser.getClientLiquid(frequency);
+            if(fluid.amount > 0) {
+                tooltip.add(fluid.getLocalizedName() + ": " + fluid.amount + "mB");
+            }
+        }
     }
 
-    private EnderLiquidStorage getLiquidStorage(ItemStack stack) {
-        return (EnderLiquidStorage) EnderStorageManager.instance(FMLCommonHandler.instance().getSide().isClient()).getStorage(getFreq(stack), "liquid");
+    private EnderLiquidStorage getLiquidStorage(ItemStack stack, boolean server) {
+        return (EnderLiquidStorage) EnderStorageManager.instance(!server).getStorage(stack, "liquid");
     }
 
     @Override
-    public ICapabilityProvider initCapabilities(final ItemStack stack, NBTTagCompound nbt) {
-        if (getMetadata(stack) == 1) {
+    public ICapabilityProvider initCapabilities(@Nonnull final ItemStack stack, NBTTagCompound nbt) {
+        if (getMetadata(stack) == 1 && enderTankItemFluidHandler) {
             return new ICapabilityProvider() {
                 @Override
-                public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing) {
-
-                    return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY;
+                public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {
+                    return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY
+                            || capability == CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY;
                 }
 
                 @Override
-                public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing) {
-
-                    return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY ? getLiquidStorage(stack) : null);
+                public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing) {
+                    if(capability == CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY) {
+                        return CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY.cast(getLiquidStorage(stack, true));
+                    }
+                    return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY ? getLiquidStorage(stack, true) : null);
                 }
             };
         }

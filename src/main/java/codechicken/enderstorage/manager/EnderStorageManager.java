@@ -6,6 +6,7 @@ import codechicken.enderstorage.api.Frequency;
 import codechicken.lib.config.ConfigFile;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.DimensionManager;
@@ -161,6 +162,25 @@ public class EnderStorageManager {
             manager = client ? clientManager : serverManager;
         }
         return manager;
+    }
+    public Frequency getFreq(ItemStack stack) {
+        return Frequency.readFromStack(stack);
+    }
+
+    public AbstractEnderStorage getStorage(ItemStack stack, String type) {
+        Frequency freq = getFreq(stack);
+        String key = freq + ",type=" + type;
+        AbstractEnderStorage storage = storageMap.get(key);
+        if (storage == null) {
+            storage = plugins.get(type).createEnderStorage(this, stack);
+            if (!client && saveTag.hasKey(key)) {
+                storage.loadFromTag(saveTag.getCompoundTag(key));
+            }
+            storageMap.put(key, storage);
+            storageList.get(type).add(storage);
+        }
+        storage.setStack(stack);
+        return storage;
     }
 
     public AbstractEnderStorage getStorage(Frequency freq, String type) {

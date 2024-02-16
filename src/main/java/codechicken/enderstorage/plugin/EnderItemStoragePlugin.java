@@ -8,6 +8,7 @@ import codechicken.enderstorage.network.EnderStorageSPH;
 import codechicken.enderstorage.storage.EnderItemStorage;
 import codechicken.lib.config.ConfigTag;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 
 import java.util.List;
 
@@ -19,6 +20,11 @@ public class EnderItemStoragePlugin implements EnderStoragePlugin {
     @Override
     public AbstractEnderStorage createEnderStorage(EnderStorageManager manager, Frequency freq) {
         return new EnderItemStorage(manager, freq);
+    }
+
+    @Override
+    public AbstractEnderStorage createEnderStorage(EnderStorageManager manager, ItemStack stack) {
+        return new EnderItemStorage(manager, stack);
     }
 
     @Override

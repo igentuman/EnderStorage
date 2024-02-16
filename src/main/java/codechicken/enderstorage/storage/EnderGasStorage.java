@@ -6,6 +6,7 @@ import codechicken.enderstorage.api.Frequency;
 import codechicken.enderstorage.handler.ConfigurationHandler;
 import codechicken.enderstorage.manager.EnderStorageManager;
 import mekanism.api.gas.*;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fluids.FluidStack;
@@ -15,6 +16,7 @@ import net.minecraftforge.fml.common.Optional;
 import javax.annotation.Nonnull;
 
 import static codechicken.enderstorage.handler.ConfigurationHandler.tankSize;
+import static codechicken.enderstorage.storage.EnderLiquidStorage.getFreq;
 
 @Optional.InterfaceList({
         @Optional.Interface(iface = "mekanism.api.gas.IGasHandler", modid = "mekanism")
@@ -26,6 +28,11 @@ public class EnderGasStorage extends AbstractEnderStorage implements IGasHandler
     private boolean canTransferGas()
     {
         return EnderStorage.hooks.MekanismLoaded && ConfigurationHandler.mekanismGasSupport;
+    }
+
+    @Override
+    public void setStack(ItemStack stack) {
+        this.stack = stack;
     }
 
     public FluidStack getFluid()
@@ -114,10 +121,17 @@ public class EnderGasStorage extends AbstractEnderStorage implements IGasHandler
     }
 
     private Tank tank;
+    public ItemStack stack;
 
     public EnderGasStorage(EnderStorageManager manager, Frequency freq) {
         super(manager, freq);
         tank = new Tank(CAPACITY);
+    }
+
+    public EnderGasStorage(EnderStorageManager manager, ItemStack stack) {
+        super(manager, getFreq(stack));
+        tank = new Tank(CAPACITY);
+        this.stack = stack;
     }
 
     @Override

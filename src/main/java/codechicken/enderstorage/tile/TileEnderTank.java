@@ -254,7 +254,6 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
                 ejectMana();
             }
         }
-
         liquid_state.update(world.isRemote);
     }
 

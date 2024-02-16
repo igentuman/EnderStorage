@@ -23,6 +23,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import static codechicken.enderstorage.plugin.EnderItemStoragePlugin.configSize;
 import static codechicken.enderstorage.plugin.EnderItemStoragePlugin.sizes;
+import static codechicken.enderstorage.storage.EnderLiquidStorage.getFreq;
 
 public class EnderItemStorage extends AbstractEnderStorage implements IInventory {
 
@@ -32,6 +33,17 @@ public class EnderItemStorage extends AbstractEnderStorage implements IInventory
 
     public EnderItemStorage(EnderStorageManager manager, Frequency freq) {
         super(manager, freq);
+        size = configSize;
+        empty();
+    }
+
+    @Override
+    public void setStack(ItemStack stack) {
+
+    }
+
+    public EnderItemStorage(EnderStorageManager manager, ItemStack stack) {
+        super(manager, getFreq(stack));
         size = configSize;
         empty();
     }

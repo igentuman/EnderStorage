@@ -82,7 +82,7 @@ public class TankSynchroniser {
                         c_gas_id = s_gas_id;
                         c_gas_amount = s_gas_amount;
                     } else {
-                        if(Math.abs(c_gas_amount - s_gas_amount) > 250 || (s_gas_amount == 0 && c_gas_amount > 0)) {
+                        if(Math.abs(c_gas_amount - s_gas_amount) > 100 || (s_gas_amount == 0 && c_gas_amount > 0)) {
                             sendSyncPacket();
                             c_gas_id = s_gas_id;
                             c_gas_amount = s_gas_amount;
@@ -96,7 +96,7 @@ public class TankSynchroniser {
                 if (!s_liquid.isFluidEqual(c_liquid)) {
                     sendSyncPacket();
                     c_liquid = s_liquid;
-                } else if (Math.abs(c_liquid.amount - s_liquid.amount) > 250 || (s_liquid.amount == 0 && c_liquid.amount > 0)) {// Diff grater than 250 Or server no longer has liquid and client does.
+                } else if (Math.abs(c_liquid.amount - s_liquid.amount) > 100 || (s_liquid.amount == 0 && c_liquid.amount > 0)) {// Diff grater than 250 Or server no longer has liquid and client does.
                     sendSyncPacket();
                     c_liquid = s_liquid;
                 }
@@ -120,6 +120,7 @@ public class TankSynchroniser {
             if (!s_liquid.isFluidEqual(c_liquid)) {
                 f_liquid = c_liquid.copy();
             }
+            //getStorage(true).setFluid(f_liquid);
         }
 
         //SERVER SIDE ONLY!
@@ -149,7 +150,7 @@ public class TankSynchroniser {
         @Override
         public void sendSyncPacket() {
             if (!tracking) {
-                return;
+              //  return;
             }
 
             PacketCustom packet = new PacketCustom(EnderStorageSPH.channel, 4);
@@ -167,9 +168,7 @@ public class TankSynchroniser {
 
         @Override
         public void update(boolean client) {
-            if (tracking || client) {
-                super.update(client);
-            }
+            super.update(client);
         }
     }
 
@@ -221,10 +220,10 @@ public class TankSynchroniser {
             if (client) {
                 Sets.SetView<Frequency> new_visible = Sets.difference(a_visible, b_visible);
                 Sets.SetView<Frequency> old_visible = Sets.difference(b_visible, a_visible);
-
-                if (!new_visible.isEmpty() || !old_visible.isEmpty()) {
+                boolean forceUpddate = net.minecraft.client.Minecraft.getMinecraft().world.getTotalWorldTime() % 10 == 0;
+                if (!new_visible.isEmpty() || !old_visible.isEmpty() || forceUpddate) {
                     PacketCustom packet = new PacketCustom(EnderStorageCPH.channel, 1);
-
+                    packet.writeBoolean(forceUpddate);
                     packet.writeShort(new_visible.size());
                     new_visible.forEach(freq -> freq.writeToPacket(packet));
 
@@ -249,6 +248,7 @@ public class TankSynchroniser {
         }
 
         public void handleVisiblityPacket(PacketCustom packet) {
+            boolean force = packet.readBoolean();
             int k = packet.readUShort();
             for (int i = 0; i < k; i++) {
                 track(Frequency.readFromPacket(packet), true);

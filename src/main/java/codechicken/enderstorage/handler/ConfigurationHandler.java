@@ -27,6 +27,7 @@ public class ConfigurationHandler {
     public static boolean disableCreatorVisuals;
     public static boolean botaniaManaSupport;
     public static boolean mekanismGasSupport;
+    public static boolean enderTankItemFluidHandler;
     public static boolean perDimensionStorage;
     public static boolean useVanillaEnderChestSounds;
     public static int tankSize;
@@ -76,6 +77,7 @@ public class ConfigurationHandler {
         mekanismGasSupport = config.getTag("mekanismGasSupport").setComment("Adds Ender Tank support for mekanism gasses.").getBooleanValue(true);
         botaniaManaSupport = config.getTag("botaniaManaSupport").setComment("Adds Ender Tank support mana from Botania.").getBooleanValue(true);
         manaOutputRate = config.getTag("manaOutputRate").setComment("Ender Tank pressure mode output rate mb/t for Botania mana.").getIntValue(100);
+        enderTankItemFluidHandler = config.getTag("enderTankItemFluidHandler").setComment("If Ender Tank can be used in inventory slots as fluid capability provider.").getBooleanValue(true);
 
         perDimensionStorage = config.getTag("perDimensionStorage").setComment("Makes storage connection with the same color only possible inside a dimension. No cross dimension storage.").getBooleanValue(false);
         disableCreatorVisuals = config.getTag("disableCreatorVisuals").setComment("Disables the tank on top of the creators heads.").getBooleanValue(false);

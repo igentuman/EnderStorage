@@ -35,7 +35,7 @@ public class EnderPouchBakery implements IItemBakery, IIconRegister {
         List<BakedQuad> quads = new ArrayList<>();
         if (face == null) {
             Frequency frequency = Frequency.readFromStack(stack);
-            boolean open = ((EnderItemStorage) EnderStorageManager.instance(true).getStorage(frequency, "item")).openCount() > 0;
+            boolean open = ((EnderItemStorage) EnderStorageManager.instance(true).getStorage(stack, "item")).openCount() > 0;
             TextureAtlasSprite bagTexture = BAG_TEXTURES[frequency.hasOwner() ? 1 : 0][open ? 1 : 0];
             TextureAtlasSprite leftButton = COLOUR_TEXTURES[0][frequency.getLeft().getWoolMeta()];
             TextureAtlasSprite middleButton = COLOUR_TEXTURES[1][frequency.getMiddle().getWoolMeta()];
