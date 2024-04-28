@@ -34,6 +34,7 @@ public class ConfigurationHandler {
     public static int tankOutputRate;
     public static int manaOutputRate;
     public static ItemStack personalItem;
+    public static ItemStack enableAutoCollectItem;
 
     public static void init(File file) {
         if (!initialized) {
@@ -47,30 +48,60 @@ public class ConfigurationHandler {
         config.removeTag("disableVanilla");
         config.removeTag("disableVanillaRecipe");
         anarchyMode = config.getTag("anarchyMode").setComment("Causes chests to lose personal settings and drop the diamond on break").getBooleanValue(false);
-        ConfigTag tag = config.getTag("personalItem").setComment("The name of the item used to set the chest to personal. Diamond by default. Format <modid>:<registeredItemName>|<meta>, Meta can be replaced with \"WILD\"");
+
+        // Config tag for personalItem
+        ConfigTag personalItem_tag = config.getTag("personalItem").setComment("The name of the item used to set the chest to personal. Diamond by default. Format <modid>:<registeredItemName>|<meta>, Meta can be replaced with \"WILD\"");
         //region personalItemParsing
-        String name = tag.getValue("minecraft:diamond|0");
-        Item item;
-        int meta;
+        String personalItem_name = personalItem_tag.getValue("minecraft:diamond|0");
+        Item personalItem_item;
+        int personalItem_meta;
         try {
-            int pipeIndex = name.lastIndexOf("|");
-            item = Item.REGISTRY.getObject(new ResourceLocation(name.substring(0, pipeIndex)));
-            if (item == null) {
+            int pipeIndex = personalItem_name.lastIndexOf("|");
+            personalItem_item = Item.REGISTRY.getObject(new ResourceLocation(personalItem_name.substring(0, pipeIndex)));
+            if (personalItem_item == null) {
                 throw new Exception("Item does not exist!");
             }
-            String metaString = name.substring(pipeIndex + 1);
+            String metaString = personalItem_name.substring(pipeIndex + 1);
             if (metaString.equalsIgnoreCase("WILD")) {
-                meta = OreDictionary.WILDCARD_VALUE;
+                personalItem_meta = OreDictionary.WILDCARD_VALUE;
             } else {
-                meta = Integer.parseInt(metaString);
+                personalItem_meta = Integer.parseInt(metaString);
             }
         } catch (Exception e) {
-            tag.setValue("minecraft:diamond|0");
+            personalItem_tag.setValue("minecraft:diamond|0");
             LogHelper.log(Level.ERROR, e, "Unable to parse Personal item config entry, Resetting to default.");
-            item = Items.DIAMOND;
-            meta = 0;
+            personalItem_item = Items.DIAMOND;
+            personalItem_meta = 0;
         }
-        personalItem = new ItemStack(item, 1, meta);
+        personalItem = new ItemStack(personalItem_item, 1, personalItem_meta);
+
+        // Config tag for enableAutoCollectItem
+        ConfigTag enableAutoCollectItem_tag = config.getTag("enableAutoCollectItem").setComment("The name of the item used to enable auto collect on the pouch. Nether Star by default. Format <modid>:<registeredItemName>|<meta>, Meta can be replaced with \"WILD\"");
+        //region enableAutoCollectItemParsing
+        String enableAutoCollectItem_name = enableAutoCollectItem_tag.getValue("minecraft:nether_star|0");
+        Item enableAutoCollectItem_item;
+        int enableAutoCollectItem_meta;
+        try {
+            int pipeIndex = enableAutoCollectItem_name.lastIndexOf("|");
+            enableAutoCollectItem_item = Item.REGISTRY.getObject(new ResourceLocation(enableAutoCollectItem_name.substring(0, pipeIndex)));
+            if (enableAutoCollectItem_item == null) {
+                throw new Exception("Item does not exist!");
+            }
+            String metaString = enableAutoCollectItem_name.substring(pipeIndex + 1);
+            if (metaString.equalsIgnoreCase("WILD")) {
+                enableAutoCollectItem_meta = OreDictionary.WILDCARD_VALUE;
+            } else {
+                enableAutoCollectItem_meta = Integer.parseInt(metaString);
+            }
+        } catch (Exception e) {
+            enableAutoCollectItem_tag.setValue("minecraft:nether_star|0");
+            LogHelper.log(Level.ERROR, e, "Unable to parse auto collect enable item config entry, Resetting to default.");
+            enableAutoCollectItem_item = Items.NETHER_STAR;
+            enableAutoCollectItem_meta = 0;
+        }
+        enableAutoCollectItem = new ItemStack(enableAutoCollectItem_item, 1, enableAutoCollectItem_meta);
+
+
         //endregion
         tankSize = config.getTag("tankSize").setComment("Ender Tank size in mb.").getIntValue(50000);
         tankOutputRate = config.getTag("tankOutputRate").setComment("Ender Tank pressure mode output rate mb/t.").getIntValue(500);
