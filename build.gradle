@@ -17,6 +17,9 @@ buildscript {
 
 //add dependency repositories
 repositories {
+    flatDir {
+        dirs 'libs'
+    }
     maven {
         url = "https://www.cursemaven.com"
     }
@@ -68,6 +71,7 @@ configurations {
 }
 
 dependencies {
+    compile files('libs/mcp-1.12.2-srg.zip')
     shade "com.github.MJaroslav.Reflectors:library:v4"
     compile "codechicken:CodeChickenLib:${config.mc_version}-${config.ccl_version}:deobf"
 	compile "mezz.jei:jei_${config.mc_version}:${config.jei_version}"
