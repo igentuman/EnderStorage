@@ -66,10 +66,17 @@ public class ItemEnderPouch extends Item implements IBakeryProvider {
     @Override
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         Frequency freq = Frequency.readFromStack(stack);
+
         if (freq.owner != null) {
             tooltip.add(freq.owner);
         }
+
         tooltip.add(freq.getTooltip());
+
+        if (freq.dimId != null) {
+            tooltip.add("Dimension ID: " + freq.dimId);
+        }
+
         if (canAutoPickup(stack)) {
             tooltip.add("Auto-Pickup: " + isAutoPickupEnabledToString(stack));
         }
@@ -173,11 +180,13 @@ public class ItemEnderPouch extends Item implements IBakeryProvider {
                     break;
                 }
                 ItemStack itemStackInSlot = enderStorage.getStackInSlot(i);
+                int itemStackSizeInSlot = itemStackInSlot.getMaxStackSize();
+
                 if (canMerge(itemStackInSlot, itemStackOnGround)) {
-                    int amountAvailable = itemStackInSlot.getMaxStackSize() - itemStackInSlot.getCount();
+                    int amountAvailable = itemStackSizeInSlot - itemStackInSlot.getCount();
                     if (itemStackOnGround.getCount() >= amountAvailable) {
                         itemStackOnGround.setCount(itemStackOnGround.getCount() - amountAvailable);
-                        itemStackInSlot.setCount(itemStackOnGround.getMaxStackSize());
+                        itemStackInSlot.setCount(itemStackSizeInSlot);
 
                     } else {
                         itemStackInSlot.setCount(itemStackInSlot.getCount() + itemStackOnGround.getCount());
