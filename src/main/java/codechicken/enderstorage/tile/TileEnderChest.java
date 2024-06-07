@@ -105,9 +105,11 @@ public class TileEnderChest extends TileFrequencyOwner {
                         ItemStack insertStack = stack.copy();
                         insertStack.setCount(toInsert);
                         inventory.insertItem(i, insertStack, false);
+                        getStorage().markDirty();
                     } else {
                         inventory.insertItem(i, stack.copy(), false);
                         stack.setCount(0);
+                        getStorage().markDirty();
                     }
                 }
             }
