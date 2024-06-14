@@ -9,5 +9,10 @@ enderstorage.command.no_arguments=Invalid number of arguments
 enderstorage.command.no_freq=Invalid freq
 enderstorage.command.no_colour=Invalid color: %s
 
-enderstrage.tile.mode.push=Push mode enabled
-enderstrage.tile.mode.default=Push mode disabled
+enderstorage.tile.mode.push=Push mode enabled
+enderstorage.tile.mode.default=Push mode disabled
+enderstorage.tooltip.dimension_id=Dimension ID: %s
+enderstorage.tooltip.frequency=Frequency: %s
+enderstorage.tooltip.autopickup_enabled=Auto-pickup: Enabled
+enderstorage.tooltip.autopickup_disabled=Auto-pickup: Disabled
+enderstorage.tooltip.craft_with_to_make_autopickup=Craft with %s to enable autopickup

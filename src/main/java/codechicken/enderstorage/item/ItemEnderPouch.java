@@ -9,6 +9,7 @@ import codechicken.enderstorage.tile.TileEnderChest;
 import codechicken.lib.model.bakery.IBakeryProvider;
 import codechicken.lib.model.bakery.generation.IBakery;
 import codechicken.lib.util.ItemNBTUtils;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
@@ -29,6 +30,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
+import static codechicken.enderstorage.handler.ConfigurationHandler.enableAutoCollectItem;
+
 public class ItemEnderPouch extends Item implements IBakeryProvider {
 
     public ItemEnderPouch() {
@@ -48,7 +51,7 @@ public class ItemEnderPouch extends Item implements IBakeryProvider {
     }
 
     private String isAutoPickupEnabledToString(ItemStack stack) {
-        return isAutoPickupEnabled(stack) ? "Enabled" : "Disabled";
+        return isAutoPickupEnabled(stack) ? "enabled" : "disabled";
     }
 
     private static void flipBoolean(ItemStack stack, String key) {
@@ -74,12 +77,19 @@ public class ItemEnderPouch extends Item implements IBakeryProvider {
         tooltip.add(freq.getTooltip());
 
         if (freq.dimId != null) {
-            tooltip.add("Dimension ID: " + freq.dimId);
+            tooltip.add(translate("enderstorage.tooltip.dimension_id", freq.dimId));
         }
-
+        if(!canAutoPickup(stack) && enableAutoCollectItem != null && !enableAutoCollectItem.isEmpty()) {
+            tooltip.add(translate("enderstorage.tooltip.craft_with_to_make_autopickup", enableAutoCollectItem.getDisplayName()));
+        }
         if (canAutoPickup(stack)) {
-            tooltip.add("Auto-Pickup: " + isAutoPickupEnabledToString(stack));
+            tooltip.add(translate("enderstorage.tooltip.autopickup_" + isAutoPickupEnabledToString(stack)));
         }
+    }
+
+    private String translate(String key, Object... args) {
+        TextComponentTranslation translation = new TextComponentTranslation(key, args);
+        return translation.getFormattedText();
     }
 
     @Override
