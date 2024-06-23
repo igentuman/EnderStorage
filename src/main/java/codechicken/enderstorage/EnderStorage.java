@@ -47,11 +47,11 @@ public class EnderStorage {
         ModMetadata metadata = event.getModMetadata();
         metadata.description = modifyDesc(metadata.description);
         ModDescriptionEnhancer.registerEnhancement(MOD_ID, MOD_NAME);
+        ConfigurationHandler.loadConfig();
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        ConfigurationHandler.loadConfig();
         proxy.init();
     }
 
