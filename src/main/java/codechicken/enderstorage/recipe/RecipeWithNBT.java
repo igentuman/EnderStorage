@@ -63,7 +63,7 @@ public class RecipeWithNBT extends IForgeRegistryEntry.Impl<IRecipe> implements 
 
     @Override
     public ItemStack getRecipeOutput() {
-        return ModItems.enderPouch.getDefaultInstance();
+        return new ItemStack(ModItems.enderPouch);
     }
 }
 
