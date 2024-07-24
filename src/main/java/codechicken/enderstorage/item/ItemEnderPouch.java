@@ -66,6 +66,8 @@ public class ItemEnderPouch extends Item implements IBakeryProvider {
         stack.getTagCompound().setBoolean(key, !currentValue);
     }
 
+
+    @SideOnly(Side.CLIENT)
     @Override
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         Frequency freq = Frequency.readFromStack(stack);
