@@ -200,8 +200,10 @@ public class TankSynchroniser {
                 if (!t) {
                     return;
                 }
+                try {
                 tankStates.put(key, state = new PlayerItemTankState(player, (EnderLiquidStorage) EnderStorageManager.instance(false).getStorage(freq, "liquid")));
                 tankStates.put(key, state = new PlayerItemTankState(player, (EnderGasStorage) EnderStorageManager.instance(false).getStorage(freq, "gas")));
+                } catch (Exception ignore) { }
             }
             state.setTracking(t);
         }
