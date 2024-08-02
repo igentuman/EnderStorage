@@ -83,7 +83,7 @@ public class ItemEnderStorage extends ItemBlock {
 
     @Override
     public ICapabilityProvider initCapabilities(@Nonnull final ItemStack stack, NBTTagCompound nbt) {
-        if (getMetadata(stack) == 1 && enderTankItemFluidHandler) {
+        if (getMetadata(stack) == 1 && enderTankItemFluidHandler && stack.getCount() == 1) {
             return new ICapabilityProvider() {
                 @Override
                 public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing) {

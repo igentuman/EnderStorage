@@ -398,7 +398,7 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
             if (pressure_state.invert_redstone) {
                 subtype = "push";
             }
-            player.sendMessage(new TextComponentTranslation("enderstrage.tile.mode." + subtype));
+            player.sendMessage(new TextComponentTranslation("enderstorage.tile.mode." + subtype));
             return true;
         }
         if(liquid_state.s_gas_id == 0 && !(getStorage().getFluid().getFluid() instanceof FluidMana)) {

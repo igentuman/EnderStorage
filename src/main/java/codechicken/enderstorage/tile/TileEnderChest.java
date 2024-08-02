@@ -181,7 +181,7 @@ public class TileEnderChest extends TileFrequencyOwner {
             if (mode == 1) {
                 subtype = "push";
             }
-            player.sendMessage(new TextComponentTranslation("enderstrage.tile.mode." + subtype));
+            player.sendMessage(new TextComponentTranslation("enderstorage.tile.mode." + subtype));
             return true;
         }
         getStorage().openSMPGui(player, "tile.enderChest.name");
