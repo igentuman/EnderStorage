@@ -53,7 +53,7 @@ public class TankSynchroniser {
 
         }
 
-        public void update(boolean client) {
+        public void update(boolean client, boolean force) {
             FluidStack b_liquid;
             FluidStack a_liquid;
             if (client) {
@@ -101,11 +101,16 @@ public class TankSynchroniser {
                     c_liquid = s_liquid;
                 }
 
+                if(force) {
+                    sendSyncPacket();
+                }
                 a_liquid = s_liquid;
+
             }
             if ((b_liquid.amount == 0) != (a_liquid.amount == 0) || !b_liquid.isFluidEqual(a_liquid)) {
                 onLiquidChanged();
             }
+
         }
 
         public void onLiquidChanged() {
@@ -167,8 +172,8 @@ public class TankSynchroniser {
         }
 
         @Override
-        public void update(boolean client) {
-            super.update(client);
+        public void update(boolean client, boolean force) {
+            super.update(client, force);
         }
     }
 
@@ -216,7 +221,7 @@ public class TankSynchroniser {
 
         public void update() {
             for (Map.Entry<String, PlayerItemTankState> entry : tankStates.entrySet()) {
-                entry.getValue().update(client);
+                entry.getValue().update(client, false);
             }
 
             if (client) {

@@ -163,6 +163,10 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
                 a_pressure = world.isBlockPowered(getPos()) != invert_redstone;
                 if (a_pressure != b_pressure) {
                     sendSyncPacket();
+                    return;
+                }
+                if(world.getWorldTime() % 20 == 0) {
+                    sendSyncPacket();
                 }
             }
         }
@@ -254,7 +258,8 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
                 ejectMana();
             }
         }
-        liquid_state.update(world.isRemote);
+        liquid_state.setFrequency(frequency);
+        liquid_state.update(world.isRemote, world.getWorldTime() % 20 == 0);
     }
 
     @Optional.Method(modid = "mekanism")
@@ -263,6 +268,12 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
         for (EnumFacing side : EnumFacing.values()) {
             TileEntity te = world.getTileEntity(getPos().offset(side));
             if(te == null) continue;
+            if(te instanceof TileEnderTank) {
+                TileEnderTank sideTe = (TileEnderTank) te;
+                if(sideTe.getStorage().freq.equals(frequency)) {
+                    continue;
+                }
+            }
             if(!te.hasCapability(Capabilities.GAS_HANDLER_CAPABILITY, side.getOpposite())) continue;
 
             IGasHandler c = te.getCapability(Capabilities.GAS_HANDLER_CAPABILITY, side.getOpposite());
@@ -283,6 +294,12 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
         for (EnumFacing side : EnumFacing.values()) {
             TileEntity te = world.getTileEntity(getPos().offset(side));
             if(te == null) continue;
+            if(te instanceof TileEnderTank) {
+                TileEnderTank sideTe = (TileEnderTank) te;
+                if(sideTe.getStorage().freq.equals(frequency)) {
+                    continue;
+                }
+            }
             if(te instanceof IManaReceiver) {
                 IManaReceiver manaTe = (IManaReceiver) te;
                if(manaTe.isFull()) return;
@@ -307,6 +324,14 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
     private void ejectLiquid() {
         if(getStorage().getFluid().getFluid() instanceof FluidMana) return;
         for (EnumFacing side : EnumFacing.values()) {
+            TileEntity te = world.getTileEntity(getPos().offset(side));
+            if(te == null) continue;
+            if(te instanceof TileEnderTank) {
+                TileEnderTank sideTe = (TileEnderTank) te;
+                if(sideTe.getStorage().freq.equals(frequency)) {
+                    continue;
+                }
+            }
             IFluidHandler c = FluidUtils.getFluidHandlerOrEmpty(world, getPos().offset(side), side.getOpposite());
             FluidStack liquid = getStorage().drain(tankOutputRate, false);
             if (liquid == null) {
@@ -341,6 +366,19 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
     public void onPlaced(EntityLivingBase entity) {
         rotation = (int) Math.floor(entity.rotationYaw * 4 / 360 + 2.5D) & 3;
         pressure_state.b_rotate = pressure_state.a_rotate = pressure_state.approachRotate();
+        if(world.isRemote) {
+            return;
+        }
+        setFreq(frequency.copy().setDimId(String.valueOf(entity.dimension)));
+        liquid_state.setFrequency(frequency);
+        liquid_state.forceUpdate();
+        markDirty();
+        if(entity instanceof EntityPlayer) {
+            EntityPlayer player = (EntityPlayer) entity;
+            FluidUtil.interactWithFluidHandler(player, player.swingingHand, getStorage());
+        }
+        getStorage().manager.requestSave(getStorage());
+        sendUpdatePacket();
     }
 
     @Override
@@ -387,6 +425,7 @@ public class TileEnderTank extends TileFrequencyOwner implements IGasHandler, IM
             pressure_state.b_rotate = pressure_state.a_rotate = pressure_state.approachRotate();
         }
         described = true;
+        liquid_state.update(true, true);
     }
 
     @Override

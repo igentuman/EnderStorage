@@ -16,6 +16,10 @@ public abstract class AbstractEnderStorage {
         this.freq = freq;
     }
 
+    public Frequency getFrequency() {
+        return freq;
+    }
+
     public void setDirty() {
         if (manager.client) {
             return;
